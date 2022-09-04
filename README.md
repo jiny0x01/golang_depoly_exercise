@@ -318,8 +318,6 @@ AWS IAM(Identity and Access Manager)에서 사용자를 추가해준다.
 생성된 Access Key ID와 Secret Access ID를 github 저장소에 설정하면 action이 이를 바탕으로 deploy.yml에 값을 적용할 수 있다.
 
 아까 deploy.yml에서 credentials 쪽을 보면 ```secrets.AWS_ACCESS_KEY_ID```와 ```secrets.AWS_SECRET_ACCESS_KEY```가 보인다.
-```
-```
 ```yaml
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -338,8 +336,43 @@ repository > settings > Actions에서 access key와 secret key를 이름을 맞�
 ![](./img/ecr4.png)
 ![](./img/ecr5.png)
 컨테이너 크기도 8.39MB로 매우 tiny한 것을 볼 수 있다.
-컨테이너의 URI:8080/sum으로 request를 보내면 모든게 잘 될 것 같지만 처음에 private repo로 만들어서 request를 보낼 수 없다.
+컨테이너의 URI:8080/sum으로 request를 보내면 모든게 잘 될 것 같지만 처음에 private repo로 만들어서 request를 보낼 수 없다. public으로 진행한다면 문제없이 작동할 것이다.
 
+private repo에 request를 보내기 위해선 추가 작업이 필요하다.
+aws-cli로 ecr에 로그인하여 접근할 수 있게 설정한후 로컬에 ECR이미지를 pull 하여 거기에 요청을 보내면 된다.
+
+https://aws.amazon.com/ko/cli/
+aws-cli 설치는 pip로 진행한다.
+> pip install awscli
+
+우선 AWS IAM에서 사용자 > github-ci-deploy > 보안 자격 증명에서 엑세스 키를 새로 만든다.
+![](./img/IAM5.png)
+
+만들어진 access key와 secret key를 aws configure에 입력해준다
+> aws configure
+
+default region은 서울에 해당하는 리전으로,
+output format은 json으로 해준다.
+![](aws-cli-configure.png)
+
+> aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin [ECR URI]
+
+ECR URI를 입력할 때 ~region.amazonaws.com/~  이런식으로 되어 있다.
+> 068982781836.dkr.ecr.ap-northeast-2.amazonaws.com/golang_deploy_exercise:ab7541f0cff207317c60bbac996ceb692902a485
+
+amazonaws.com 뒤에는 필요 없으니 지워주면 된다.
+> 068982781836.dkr.ecr.ap-northeast-2.amazonaws.com
+
+정상 작동하면 Login Successded 메시지를 볼 수 있고 ECR 이미지를 받아올 수 있다.
+
+> docker pull [ECR URI]
+
+> docker run -p 8080:8080 [ECR URI]
+
+localhost:8080/sum 으로 POST 요청을 보내면 정상적으로 응답한다.
+![](./img/ecr6.png)
+
+여기까지 action으로 테스트/배포 자동화와 ECR 연동방법을 알아보았다.
 
 # RDS Connect
 
