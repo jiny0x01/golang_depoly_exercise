@@ -271,7 +271,7 @@ name: Deploy to production
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
 
@@ -331,6 +331,15 @@ AWS IAM(Identity and Access Manager)에서 사용자를 추가해준다.
 
 repository > settings > Actions에서 access key와 secret key를 이름을 맞춰서 추가해준다.
 ![[action_secret1.png]]
+
+여기까지 진행하고 파일들을 add-commit-push하면 ECR에 잘 올라간 모습을 볼 수 있다.
+
+![[ecr4.png]]
+![[ecr5.png]]
+컨테이너 크기도 8.39MB로 매우 tiny한 것을 볼 수 있다.
+컨테이너의 URI:8080/sum으로 request를 보내면 모든게 잘 될 것 같지만 처음에 private repo로 만들어서 request를 보낼 수 없다.
+
+
 # RDS Connect
 
 #
