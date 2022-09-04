@@ -149,6 +149,7 @@ func TestSum(t *testing.T) {
 ![[action1.png]]
 
 ```yaml
+# .github/workflows/test.yml
 name: Run unit test
 
 on:
@@ -175,9 +176,8 @@ jobs:
 ```
 
 
-```
-
 모든 파일들을 다 추가하고 push하면 된다.
+```
 ```bash
 git add .
 git commit m -m "Add unit test"
@@ -212,9 +212,13 @@ https://docs.github.com/en/actions/learn-github-actions/understanding-github-act
 # ECR Build
 위에서 만든 서버 애플리케이션을 ECR(Elastic Container Registry)에 배포 해볼 것이다. 
 
+
+### Dockerfile & docker-compose 작성
+
 우선 Dockerfile을 작성해준다.
 ```Dockerfile
 #Dockerfile
+
 #Build stage 
 FROM golang:1.18.5-alpine3.16 AS builder 
 WORKDIR /app COPY . . 
@@ -233,10 +237,10 @@ FROM을 2개 쓰는 이유가 궁금하면 여기로
 docker-compose를 사용하여 서버 애플리케이션을 실행할 것이다.
 
 ```yaml
-# demo docker-compose
+# docker-compose.yml
 version: "3.9"
 services:
-  api:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -245,8 +249,88 @@ services:
     command: [ "/app/main" ]
 ```
 
+아래 명령어를 실행하면 잘 작동하는 것을 확인할 수 있다.
+> docker-compose up
 
+### AWS ECR
+aws에 로그인하고 ECR을 검색한 후 private으로 repo를 생성한다.
+![[ecr1.png]]
 
+![[ecr2.png]]
+
+repository가 생성되면 상단에 푸쉬 명령 보기 팝업이 뜬다.
+![[ecr3.png]]
+
+아까 작성한 docker-compose를 ecr에 올리기 위해 workflow를 하나 더 만들어준다.
+작성 방법은 아래 링크를 참조하여 작성한다. 우리의 repository가 private 점을 기억하자.
++ https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to production 
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    name: Build image 
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code 
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # github>repo에서 추가
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # 위와 동일
+        aws-region: ap-northeast-2  # 리전을 서울로 설정해주자
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push docker image to Amazon ECR
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: golang_deploy_exercise  # ecr 레포 이름
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+```
+
+action이 aws에 접근할 수 있게 설정 해야한다. 
+AWS IAM(Identity and Access Manager)에서 사용자를 추가해준다.
+![[IAM1.png]]
+![[IAM2.png]]
+
+사용자를 그룹에 추가하기 위해 우선 그룹을 먼저 만든다.
+그룹의 권한은 ECR에 접근할 수 있도록 EC2ContainerRegistryFullAccess를 적용해주고 다음으로 넘어간다.
+![[IAM3.png]]
+
+![[IAM4.png]]
+생성된 Access Key ID와 Secret Access ID를 github 저장소에 설정하면 action이 이를 바탕으로 deploy.yml에 값을 적용할 수 있다.
+
+아까 deploy.yml에서 credentials 쪽을 보면 ```secrets.AWS_ACCESS_KEY_ID```와 ```secrets.AWS_SECRET_ACCESS_KEY```가 보인다.
+```
+```
+```yaml
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2  # 리전을 서울로 설정해주자
+
+```
+
+repository > settings > Actions에서 access key와 secret key를 이름을 맞춰서 추가해준다.
+![[action_secret1.png]]
 # RDS Connect
 
 #
