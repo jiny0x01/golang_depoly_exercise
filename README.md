@@ -142,11 +142,12 @@ func TestSum(t *testing.T) {
 아래 명령어로 전체 테스트를 진행할 수 있다.
 
 > go test -v ./...
-![[./img/unit_test.png]]
+
+![](./img/unit_test.png)
 
 
 이제 github repo에서 actions 탭에서 Go 템플릿을 살짝 수정할거다.
-![[./img/action1.png]]
+![](./img/action1.png)
 
 ```yaml
 # .github/workflows/test.yml
@@ -184,7 +185,7 @@ git commit m -m "Add unit test"
 git push
 ```
 
-![[./img/unit_test_result.png]]
+![](./img/unit_test_result.png)
 
 
 #### workflow
@@ -254,12 +255,12 @@ services:
 
 ### AWS ECR
 aws에 로그인하고 ECR을 검색한 후 private으로 repo를 생성한다.
-![[./img/ecr1.png]]
+![](./img/ecr1.png)
 
-![[./img/ecr2.png]]
+![](./img/ecr2.png)
 
 repository가 생성되면 상단에 푸쉬 명령 보기 팝업이 뜬다.
-![[./img/ecr3.png]]
+![](./img/ecr3.png)
 
 아까 작성한 docker-compose를 ecr에 올리기 위해 workflow를 하나 더 만들어준다.
 작성 방법은 아래 링크를 참조하여 작성한다. 우리의 repository가 private 점을 기억하자.
@@ -306,14 +307,14 @@ jobs:
 
 action이 aws에 접근할 수 있게 설정 해야한다. 
 AWS IAM(Identity and Access Manager)에서 사용자를 추가해준다.
-![[./img/IAM1.png]]
-![[IAM2.png]]
+![](./img/IAM1.png)
+![](./img/IAM2.png)
 
 사용자를 그룹에 추가하기 위해 우선 그룹을 먼저 만든다.
 그룹의 권한은 ECR에 접근할 수 있도록 EC2ContainerRegistryFullAccess를 적용해주고 다음으로 넘어간다.
-![[./img/IAM3.png]]
+![](./img/IAM3.png)
 
-![[./img/IAM4.png]]
+![](./img/IAM4.png)
 생성된 Access Key ID와 Secret Access ID를 github 저장소에 설정하면 action이 이를 바탕으로 deploy.yml에 값을 적용할 수 있다.
 
 아까 deploy.yml에서 credentials 쪽을 보면 ```secrets.AWS_ACCESS_KEY_ID```와 ```secrets.AWS_SECRET_ACCESS_KEY```가 보인다.
@@ -330,12 +331,12 @@ AWS IAM(Identity and Access Manager)에서 사용자를 추가해준다.
 ```
 
 repository > settings > Actions에서 access key와 secret key를 이름을 맞춰서 추가해준다.
-![[./img/action_secret1.png]]
+![](./img/action_secret1.png)
 
 여기까지 진행하고 파일들을 add-commit-push하면 ECR에 잘 올라간 모습을 볼 수 있다.
 
-![[./img/ecr4.png]]
-![[./img/ecr5.png]]
+![](./img/ecr4.png)
+![](./img/ecr5.png)
 컨테이너 크기도 8.39MB로 매우 tiny한 것을 볼 수 있다.
 컨테이너의 URI:8080/sum으로 request를 보내면 모든게 잘 될 것 같지만 처음에 private repo로 만들어서 request를 보낼 수 없다.
 
