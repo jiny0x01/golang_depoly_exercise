@@ -1,7 +1,7 @@
 # golang_depoly_exercise
 
 웹서버를 만들고 이를 github-action ci로 unit-test를 진행할 것이다.
-이후에 AWS ECS에 올리는 과정까지 알아보자.
+이후에 AWS ECR에 올리는 과정까지 알아보자.
 
 이 저장소는 https://youtube.com/playlist?list=PLy_6D98if3ULEtXtNSY_2qN21VCKgoQAE 에 나온 내용을 공부하여 일부를 정리한 것이다.
 
